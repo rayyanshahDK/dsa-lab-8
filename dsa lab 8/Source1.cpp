@@ -1,295 +1,319 @@
-#include<iostream>
-#define NUMNODES 500
+#include <iostream>
 using namespace std;
-class bt {
-
-    struct Treenode {
-        int info;
-        int left, right, father;
+#define MAXNODES 500
+template <typename ItemType>
+class BinaryTree {
+private:
+    struct Node {
+        ItemType data;
+        int leftChild, rightChild, parent;
     };
-    Treenode BT[NUMNODES];
-    int nc;
+    Node tree[MAXNODES];
+    int nodeCount;
+    int root;
 public:
-
-    bt() {
-        nc = 0;
-    };
-    bt(int info) {
-        BT[0].info = info;
-        BT[0].left = -1;
-        BT[0].right = -1;
-        BT[0].father = -1;
-        nc = 1;
+    BinaryTree() {
+        nodeCount = 0;
+        root = -1;
     }
-    void maketree(int info) {
-        BT[0].info = info;
-        BT[0].left = -1;
-        BT[0].right = -1;
-        BT[0].father = -1;
-        nc = 1;
+    BinaryTree(ItemType data) {
+        nodeCount = 1;
+        root = 0;
+        tree[0].data = data;
+        tree[0].leftChild = -1;
+        tree[0].rightChild = -1;
+        tree[0].parent = -1;
     }
-    bool isempty() {
-
-        if (nc == 0) {
-            return true;
+    BinaryTree(BinaryTree& leftBT, ItemType data, BinaryTree& rightBT) {
+        nodeCount = 1 + leftBT.nodeCount + rightBT.nodeCount;
+        root = 0;
+        tree[0].data = data;
+        tree[0].leftChild = 1;
+        tree[0].rightChild = 1 + leftBT.nodeCount;
+        tree[0].parent = -1;
+        for (int idx = 0; idx < leftBT.nodeCount; idx++) {
+            tree[idx + 1] = leftBT.tree[idx];
+            tree[idx + 1].parent = 0;
         }
-        return false;
-    }
-    void setleft(int index, int value) {
-        if (nc >= NUMNODES || index < 0 && index >= nc) {
-            return;
-        }
-        if (BT[index].left == -1) {
-            int newnode = nc;
-            BT[newnode].info = value;
-            BT[newnode].left = -1;
-            BT[newnode].right = -1;
-            BT[newnode].father = index;
-            nc++;
+        for (int idx = 0; idx < rightBT.nodeCount; idx++) {
+            tree[idx + 1 + leftBT.nodeCount] = rightBT.tree[idx];
+            tree[idx + 1 + leftBT.nodeCount].parent = 0;
         }
     }
-    void setright(int index, int value) {
-        if (nc >= NUMNODES || index < 0 && index >= nc) {
-            return;
-        }
-        if (BT[index].right == -1) {
-            int newnode = nc;
-            BT[newnode].info = value;
-            BT[newnode].left = -1;
-            BT[newnode].right = -1;
-            BT[newnode].father = index;
-            nc++;
-        }
+    bool Empty() {
+        return nodeCount == 0;
     }
-    bool isleft(int index) {
-        if (index < 0 || index >= nc) {
-            return false;
+    BinaryTree GetLeftChild() {
+        BinaryTree leftSubtree;
+        if (Empty() || tree[root].leftChild == -1) {
+            cout << "Left child not found!" << endl;
         }
-        int parent = BT[index].father;
-        if (parent == -1) {
-            return false;
+        else {
+            leftSubtree.tree[0] = tree[tree[root].leftChild];
+            leftSubtree.root = 0;
+            leftSubtree.nodeCount = 1;
         }
-
+        return leftSubtree;
     }
-    bool isright(int index) {
-
-    }
-    void preorder(int index) {
-        if (index < 0 || index >= nc) {
-            return;
+    BinaryTree GetRightChild() {
+        BinaryTree rightSubtree;
+        if (Empty() || tree[root].rightChild == -1) {
+            cout << "Right child not found!" << endl;
         }
-        cout << BT[index].info << " ";
-        preorder(BT[index].left);
-        preorder(BT[index].left);
-    }
-    void inorder(int index) {
-        if (index < 0 || index >= nc) {
-            return;
+        else {
+            rightSubtree.tree[0] = tree[tree[root].rightChild];
+            rightSubtree.root = 0;
+            rightSubtree.nodeCount = 1;
         }
-
-        inorder(BT[index].left);
-        cout << BT[index].info << " ";
-        inorder(BT[index].left);
+        return rightSubtree;
     }
-    void postorder(int index) {
-        if (index < 0 || index >= nc) {
-            return;
+    ItemType GetValue() {
+        if (Empty()) {
+            cout << "Empty tree error!" << endl;
+            return ItemType();
         }
-        postorder(BT[index].left);
-        postorder(BT[index].left);
-        cout << BT[index].info << " ";
+        return tree[root].data;
     }
-    int siblings(int index) {
-        if (index < 0 || index >= nc) {
-            return false;
-        }
-        int parent = BT[index].father;
-        if (parent == -1) {
-            return false;
-        }
-        if (BT[parent].left == index) {
-            return BT[parent].right;
-        }
-        if (BT[parent].right == index) {
-            return BT[parent].left;
-        }
-    }
-    int search(int value) {
-        for (int i = 0; i < nc; i++) {
-            if (BT[i].info == value)return i;
-        }
-        return -1;
-    }
-    int findparent(int value) {
-        for (int i = 0; i < nc; i++) {
-            if (BT[0].info == value) {
-                cout << "The vertex has no parent  its the root";
-                return -1;
-            }
-            if (BT[i].info == value) {
-                return BT[i].father;
-            }
-        }
-
-        return -1;
-    }
-    void insertBST(int value) {
-        if (isempty()) {
-            maketree(value);
-            return;
-        }
-
-        int current = 0;
-        while (true) {
-            if (value < BT[current].info) {
-                if (BT[current].left == -1) {
-                    setleft(current, value);
-                    break;
-                }
-                current = BT[current].left;
-            }
-            else if (value > BT[current].info) {
-                if (BT[current].right == -1) {
-                    setright(current, value);
-                    break;
-                }
-                current = BT[current].right;
-            }
-            else {
-                break; 
-            }
-        }
-    }
-
-    void inorder_traversal() {
-        inorder(0);
-        cout << endl;
-    }
-
-    void preorder_traversal() {
-        preorder(0);
-        cout << endl;
-    }
-
-    void postorder_traversal() {
-        postorder(0);
-        cout << endl;
-    }
-
 };
-int main() {
-    bt tree;
-
-    tree.insertBST(10);
-    tree.insertBST(20);
-    tree.insertBST(30);
-    tree.insertBST(40);
-    tree.insertBST(50);
-    tree.insertBST(60);
-    tree.insertBST(70);
-
-    cout << "Inorder traversal (should be sorted): ";
-    tree.inorder_traversal();
-
-    cout << "Preorder traversal: ";
-    tree.preorder_traversal();
-
-    cout << "Postorder traversal: ";
-    tree.postorder_traversal();
-
- 
-    int value = 50;
-    int index = tree.search(value);
-    if (index != -1)
-        cout << "Value " << value << " found at index " << index << endl;
-    else
-        cout << "Value " << value << " not found in tree." << endl;
-
-    return 0;
-}
-
 //dynamically
 
 
-//#include <iostream>
-//using namespace std;
-//
-//// Node template
-//template <typename T>
-//class TreeNode {
-//public:
-//    T data;
-//    TreeNode* left;
-//    TreeNode* right;
-//
-//    TreeNode(T val) : data(val), left(nullptr), right(nullptr) {}
-//};
-//
-//template <typename T>
-//class BinaryTree {
-//private:
-//    TreeNode<T>* root;
-//
-//    TreeNode<T>* insert(TreeNode<T>* node, T val) {
-//        if (!node) return new TreeNode<T>(val);
-//        if (val < node->data)
-//            node->left = insert(node->left, val);
-//        else
-//            node->right = insert(node->right, val);
-//        return node;
-//    }
-//
-//    void inorder(TreeNode<T>* node) {
-//        if (!node) return;
-//        inorder(node->left);
-//        cout << node->data << " ";
-//        inorder(node->right);
-//    }
-//
-//    void preorder(TreeNode<T>* node) {
-//        if (!node) return;
-//        cout << node->data << " ";
-//        preorder(node->left);
-//        preorder(node->right);
-//    }
-//
-//    void postorder(TreeNode<T>* node) {
-//        if (!node) return;
-//        postorder(node->left);
-//        postorder(node->right);
-//        cout << node->data << " ";
-//    }
-//
-//    void destroy(TreeNode<T>* node) {
-//        if (!node) return;
-//        destroy(node->left);
-//        destroy(node->right);
-//        delete node;
-//    }
-//
-//public:
-//    BinaryTree() : root(nullptr) {}
-//    ~BinaryTree() { destroy(root); }
-//
-//    void insert(T val) {
-//        root = insert(root, val);
-//    }
-//
-//    void inorder() {
-//        cout << "Inorder traversal: ";
-//        inorder(root);
-//        cout << endl;
-//    }
-//
-//    void preorder() {
-//        cout << "Preorder traversal: ";
-//        preorder(root);
-//        cout << endl;
-//    }
-//
-//    void postorder() {
-//        cout << "Postorder traversal: ";
-//        postorder(root);
-//        cout << endl;
-//    }
-//};
+#include <iostream>
+using namespace std;
+
+template <typename ItemType>
+class BinaryTree {
+private:
+    struct Node {
+        ItemType data;
+        Node* leftChild;
+        Node* rightChild;
+        Node* parent;
+        
+        Node(ItemType value) : data(value), leftChild(nullptr), rightChild(nullptr), parent(nullptr) {}
+    };
+    
+    Node* root;
+    int nodeCount;
+   
+    Node* copyTree(Node* sourceNode, Node* parentNode = nullptr) {
+        if (sourceNode == nullptr) return nullptr;
+        
+        Node* newNode = new Node(sourceNode->data);
+        newNode->parent = parentNode;
+        newNode->leftChild = copyTree(sourceNode->leftChild, newNode);
+        newNode->rightChild = copyTree(sourceNode->rightChild, newNode);
+        
+        return newNode;
+    }
+    
+    int countNodes(Node* node) {
+        if (node == nullptr) return 0;
+        return 1 + countNodes(node->leftChild) + countNodes(node->rightChild);
+    }
+    
+
+    void deleteTree(Node* node) {
+        if (node != nullptr) {
+            deleteTree(node->leftChild);
+            deleteTree(node->rightChild);
+            delete node;
+        }
+    }
+
+public:
+    BinaryTree() {
+        nodeCount = 0;
+        root = nullptr;
+    }
+    
+    BinaryTree(ItemType data) {
+        nodeCount = 1;
+        root = new Node(data);
+    }
+    
+    BinaryTree(BinaryTree& leftBT, ItemType data, BinaryTree& rightBT) {
+        root = new Node(data);
+        
+        if (!leftBT.Empty()) {
+            root->leftChild = copyTree(leftBT.root, root);
+        }
+        
+        if (!rightBT.Empty()) {
+            root->rightChild = copyTree(rightBT.root, root);
+        }
+        
+        nodeCount = 1 + leftBT.nodeCount + rightBT.nodeCount;
+    }
+    
+
+    BinaryTree(const BinaryTree& other) {
+        if (other.Empty()) {
+            root = nullptr;
+            nodeCount = 0;
+        } else {
+            root = copyTree(other.root);
+            nodeCount = other.nodeCount;
+        }
+    }
+       
+    ~BinaryTree() {
+        deleteTree(root);
+    }
+    
+    bool Empty() {
+        return nodeCount == 0;
+    }
+    
+    BinaryTree GetLeftChild() {
+        BinaryTree leftSubtree;
+        if (Empty() || root->leftChild == nullptr) {
+            cout << "Left child not found!" << endl;
+        }
+        else {
+            leftSubtree.root = copyTree(root->leftChild);
+            leftSubtree.nodeCount = countNodes(leftSubtree.root);
+        }
+        return leftSubtree;
+    }
+    
+    BinaryTree GetRightChild() {
+        BinaryTree rightSubtree;
+        if (Empty() || root->rightChild == nullptr) {
+            cout << "Right child not found!" << endl;
+        }
+        else {
+            rightSubtree.root = copyTree(root->rightChild);
+            rightSubtree.nodeCount = countNodes(rightSubtree.root);
+        }
+        return rightSubtree;
+    }
+    
+    ItemType GetValue() {
+        if (Empty()) {
+            cout << "Empty tree error!" << endl;
+            return ItemType();
+        }
+        return root->data;
+    }
+};
+
+
+/* ex 8.2
+    #include <iostream>
+#define MAXSIZE 100
+using namespace std;
+class BT {
+private:
+    int nodes[MAXSIZE];
+    bool exists[MAXSIZE];  // to check if a node exists at that position
+public:
+    BT() {
+        for (int idx = 0; idx < MAXSIZE; idx++) {
+            exists[idx] = false;
+        }
+    }
+    void add(int val, int pos = 0) {
+        if (pos >= MAXSIZE) {
+            cout << "Array overflow!" << endl;
+            return;
+        }
+        if (!exists[pos]) {
+            nodes[pos] = val;
+            exists[pos] = true;
+        }
+        else {
+            cout << "Position already occupied at index " << pos << endl;
+        }
+    }
+    void addLeft(int parentPos, int val) {
+        add(val, 2 * parentPos + 1);
+    }
+    void addRight(int parentPos, int val) {
+        add(val, 2 * parentPos + 2);
+    }
+    void inorderTraversal(int pos = 0) {
+        if (pos >= MAXSIZE || !exists[pos]) return;
+        inorderTraversal(2 * pos + 1);
+        cout << nodes[pos] << " ";
+        inorderTraversal(2 * pos + 2);
+    }
+};
+int main() {
+    BT tree;
+    tree.add(10); // root
+    tree.addLeft(0, 5);
+    tree.addRight(0, 15);
+    tree.addLeft(1, 2);
+    tree.addRight(1, 7);
+    cout << "Inorder Result: ";
+    tree.inorderTraversal();
+    cout << endl;
+    return 0;
+}
+ex8.1
+/*
+#include <iostream>
+using namespace std;
+class TreeNode {
+public:
+    int value;
+    TreeNode* leftPtr;
+    TreeNode* rightPtr;
+    TreeNode(int num) {
+        value = num;
+        leftPtr = rightPtr = nullptr;
+    }
+};
+class BinaryTree {
+private:
+    TreeNode* rootPtr;
+    void inorderHelper(TreeNode* currentNode) {
+        if (!currentNode) return;
+        inorderHelper(currentNode->leftPtr);
+        cout << currentNode->value << " ";
+        inorderHelper(currentNode->rightPtr);
+    }
+public:
+    BinaryTree() {
+        rootPtr = nullptr;
+    }
+    TreeNode* getRootNode() {
+        return rootPtr;
+    }
+    void addRoot(int num) {
+        if (!rootPtr)
+            rootPtr = new TreeNode(num);
+        else
+            cout << "Root node already present!" << endl;
+    }
+    void addLeftChild(TreeNode* parentNode, int num) {
+        if (!parentNode->leftPtr)
+            parentNode->leftPtr = new TreeNode(num);
+        else
+            cout << "Left child node already present!" << endl;
+    }
+    void addRightChild(TreeNode* parentNode, int num) {
+        if (!parentNode->rightPtr)
+            parentNode->rightPtr = new TreeNode(num);
+        else
+            cout << "Right child node already present!" << endl;
+    }
+    void displayInorder() {
+        inorderHelper(rootPtr);
+    }
+};
+int main() {
+    BinaryTree myTree;
+    myTree.addRoot(10);
+    TreeNode* rootNode = myTree.getRootNode();
+    myTree.addLeftChild(rootNode, 5);
+    myTree.addRightChild(rootNode, 15);
+    myTree.addLeftChild(rootNode->leftPtr, 2);
+    myTree.addRightChild(rootNode->leftPtr, 7);
+    cout << "Inorder Display: ";
+    myTree.displayInorder();
+    cout << endl;
+    return 0;
+}
+*/
